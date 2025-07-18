@@ -1,0 +1,639 @@
+2025-07-18 16:38:22,286 - INFO - File monitoring system initialized.
+2025-07-18 16:38:22,311 - ERROR - [Error] Failed to read file D:\internship_paysky25\Triggers_file\New Microsoft Access Database.accdb: 'utf-8' codec can't decode byte 0xb5 in position 24: invalid start byte
+2025-07-18 16:38:22,321 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
+2025-07-18 16:38:22,323 - INFO - [Monitoring] Started monitoring D:\internship_paysky25\Triggers_file for new files.
+2025-07-18 16:38:22,633 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:38:23,037 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:38:23,452 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:38:23,854 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:38:24,256 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:38:24,666 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:38:25,071 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:38:25,476 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:38:25,880 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:38:26,286 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:38:26,692 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:38:27,084 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:38:27,510 - INFO - [DIFF] Changes in file_monitor.log:
+--- beforefile_monitor.log
++++ afterfile_monitor.log
+@@ -1 +1,16 @@
+ 2025-07-18 16:38:22,286 - INFO - File monitoring system initialized.
++2025-07-18 16:38:22,311 - ERROR - [Error] Failed to read file D:\internship_paysky25\Triggers_file\New Microsoft Access Database.accdb: 'utf-8' codec can't decode byte 0xb5 in position 24: invalid start byte
++2025-07-18 16:38:22,321 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
++2025-07-18 16:38:22,323 - INFO - [Monitoring] Started monitoring D:\internship_paysky25\Triggers_file for new files.
++2025-07-18 16:38:22,633 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:38:23,037 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:38:23,452 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:38:23,854 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:38:24,256 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:38:24,666 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:38:25,071 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:38:25,476 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:38:25,880 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:38:26,286 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:38:26,692 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:38:27,084 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:38:29,710 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+2025-07-18 16:38:29,710 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:47:12,566 - INFO - [DIFF] Changes in find_files.py:
+--- beforefind_files.py
++++ afterfind_files.py
+@@ -36,17 +36,42 @@
+     level=logging.INFO, 
+     format='%(asctime)s - %(levelname)s - %(message)s'
+ )
+-logging.getLogger().addHandler(logging.StreamHandler())  # Also log to console
+-
+-logging.info("File monitoring system initialized.")
+-
+-
++logging.getLogger().addHandler(logging.StreamHandler())
++
++def is_text_file(file_path):
++    try:
++        with open(file_path, 'rb') as f:
++            chunk = f.read(1024)
++        return all(c < 128 or c in b'\n\r\t' for c in chunk)  # Check if all bytes are ASCII
++    except Exception as e:
++        return False
++
++
++
++def read_file_content(file_path):
++    try:
++        if file_path.endswith('.json'):
++            with open(file_path, 'r', encoding='utf-8') as f:
++                content = json.load(f)
++                content_text = json.dumps(content, indent=4)
++                return content_text.splitlines()
++        elif is_text_file(file_path):
++            with open(file_path, 'r', encoding='utf-8') as f:
++                return f.read().splitlines()
++        else:
++            return None
++    except Exception as e:            
++        #print(f"[Error] Failed to read file {file_path}: {e}")
++        logging.error(f"[Error] Failed to read file {file_path}: {e}")
++        return []
++    
++    
+ 
+ # FindFilesHandler class to handle file system events
+ class FindFilesHandler(FileSystemEventHandler):
+     def __init__(self, directory):
+         self.directory = directory
+-        super().__init__()
++        self.initialize_content()  # Initialize content of files in the directory
+         
+         
+     def initialize_content(self):
+@@ -176,22 +201,6 @@
+             #print(f"[Error] Failed to send email notification: {e}")
+             logging.error(f"[Error] Failed to send email notification: {e}")
+   
+-                          
+-            
+-def read_file_content(file_path):
+-    try:
+-        if file_path.endswith('.json'):
+-            with open(file_path, 'r', encoding='utf-8') as f:
+-                content = json.load(f)
+-                content_text = json.dumps(content, indent=4)
+-                return content_text.splitlines()
+-        else:
+-            with open(file_path, 'r', encoding='utf-8') as f:
+-                return f.read().splitlines()
+-    except Exception as e:            
+-        #print(f"[Error] Failed to read file {file_path}: {e}")
+-        logging.error(f"[Error] Failed to read file {file_path}: {e}")
+-        return []
+ 
+ 
+ def monitor_directory(directory):
+2025-07-18 16:47:14,192 - INFO - [Notification] Email sent for file: find_files.py, action: modified.
+2025-07-18 16:47:14,192 - INFO - [Info] File find_files.py modified again within threshold, skipping email notification.
+2025-07-18 16:47:27,617 - INFO - [Monitoring] Stopped monitoring
+2025-07-18 16:47:30,366 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
+2025-07-18 16:47:30,376 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
+2025-07-18 16:47:30,378 - INFO - [Monitoring] Started monitoring D:\internship_paysky25\Triggers_file for new files.
+2025-07-18 16:47:30,725 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:47:31,128 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:47:31,529 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:47:31,530 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:47:31,931 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:47:32,334 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:47:32,752 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:47:33,152 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:47:33,556 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:47:33,958 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:47:34,361 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:47:34,752 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:47:35,154 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:47:35,578 - INFO - [DIFF] Changes in file_monitor.log:
+--- beforefile_monitor.log
++++ afterfile_monitor.log
+@@ -115,3 +115,18 @@
+ 2025-07-18 16:47:14,192 - INFO - [Info] File find_files.py modified again within threshold, skipping email notification.
+ 2025-07-18 16:47:27,617 - INFO - [Monitoring] Stopped monitoring
+ 2025-07-18 16:47:30,366 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
++2025-07-18 16:47:30,376 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
++2025-07-18 16:47:30,378 - INFO - [Monitoring] Started monitoring D:\internship_paysky25\Triggers_file for new files.
++2025-07-18 16:47:30,725 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:47:31,128 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:47:31,529 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:47:31,530 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:47:31,931 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:47:32,334 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:47:32,752 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:47:33,152 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:47:33,556 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:47:33,958 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:47:34,361 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:47:34,752 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:47:35,154 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:47:37,261 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+2025-07-18 16:47:37,262 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:48:08,157 - INFO - [Monitoring] Stopped monitoring
+2025-07-18 16:49:47,825 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
+2025-07-18 16:49:47,842 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
+2025-07-18 16:49:47,844 - INFO - [Monitoring] Started monitoring D:\internship_paysky25\Triggers_file for new files.
+2025-07-18 16:49:48,190 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:49:48,592 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:49:48,998 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:49:49,403 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:49:49,809 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:49:50,213 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:49:50,622 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:49:51,026 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:49:51,425 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:49:53,068 - INFO - [DIFF] Changes in file_monitor.log:
+--- beforefile_monitor.log
++++ afterfile_monitor.log
+@@ -156,3 +156,17 @@
+ 2025-07-18 16:47:37,262 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+ 2025-07-18 16:48:08,157 - INFO - [Monitoring] Stopped monitoring
+ 2025-07-18 16:49:47,825 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
++2025-07-18 16:49:47,842 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
++2025-07-18 16:49:47,844 - INFO - [Monitoring] Started monitoring D:\internship_paysky25\Triggers_file for new files.
++2025-07-18 16:49:48,190 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:49:48,592 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:49:48,998 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:49:49,403 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:49:49,809 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:49:50,213 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:49:50,622 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:49:51,026 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:49:51,425 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:49:54,568 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:50:04,462 - INFO - [DIFF] Changes in file_monitor.log:
+--- beforefile_monitor.log
++++ afterfile_monitor.log
+@@ -170,3 +170,26 @@
+ 2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+ 2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+ 2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:49:53,068 - INFO - [DIFF] Changes in file_monitor.log:
++--- beforefile_monitor.log
+++++ afterfile_monitor.log
++@@ -156,3 +156,17 @@
++ 2025-07-18 16:47:37,262 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++ 2025-07-18 16:48:08,157 - INFO - [Monitoring] Stopped monitoring
++ 2025-07-18 16:49:47,825 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
+++2025-07-18 16:49:47,842 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
+++2025-07-18 16:49:47,844 - INFO - [Monitoring] Started monitoring D:\internship_paysky25\Triggers_file for new files.
+++2025-07-18 16:49:48,190 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:49:48,592 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:49:48,998 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:49:49,403 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:49:49,809 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:49:50,213 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:49:50,622 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:49:51,026 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:49:51,425 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:49:54,568 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:50:06,468 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:55:29,884 - INFO - [DIFF] Changes in file_monitor.log:
+--- beforefile_monitor.log
++++ afterfile_monitor.log
+@@ -193,3 +193,35 @@
+ +2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+ 2025-07-18 16:49:54,568 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+ 2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:50:04,462 - INFO - [DIFF] Changes in file_monitor.log:
++--- beforefile_monitor.log
+++++ afterfile_monitor.log
++@@ -170,3 +170,26 @@
++ 2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++ 2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++ 2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:49:53,068 - INFO - [DIFF] Changes in file_monitor.log:
+++--- beforefile_monitor.log
++++++ afterfile_monitor.log
+++@@ -156,3 +156,17 @@
+++ 2025-07-18 16:47:37,262 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++ 2025-07-18 16:48:08,157 - INFO - [Monitoring] Stopped monitoring
+++ 2025-07-18 16:49:47,825 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
++++2025-07-18 16:49:47,842 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
++++2025-07-18 16:49:47,844 - INFO - [Monitoring] Started monitoring D:\internship_paysky25\Triggers_file for new files.
++++2025-07-18 16:49:48,190 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:49:48,592 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:49:48,998 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:49:49,403 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:49:49,809 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:49:50,213 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:49:50,622 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:49:51,026 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:49:51,425 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:49:54,568 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:50:06,468 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 16:55:31,408 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+2025-07-18 16:55:31,408 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 17:10:57,247 - INFO - [DIFF] Changes in file_monitor.log:
+--- beforefile_monitor.log
++++ afterfile_monitor.log
+@@ -225,3 +225,44 @@
+ +2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+ 2025-07-18 16:50:06,468 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+ 2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:55:29,884 - INFO - [DIFF] Changes in file_monitor.log:
++--- beforefile_monitor.log
+++++ afterfile_monitor.log
++@@ -193,3 +193,35 @@
++ +2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++ 2025-07-18 16:49:54,568 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++ 2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:50:04,462 - INFO - [DIFF] Changes in file_monitor.log:
+++--- beforefile_monitor.log
++++++ afterfile_monitor.log
+++@@ -170,3 +170,26 @@
+++ 2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++ 2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++ 2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:49:53,068 - INFO - [DIFF] Changes in file_monitor.log:
++++--- beforefile_monitor.log
+++++++ afterfile_monitor.log
++++@@ -156,3 +156,17 @@
++++ 2025-07-18 16:47:37,262 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++ 2025-07-18 16:48:08,157 - INFO - [Monitoring] Stopped monitoring
++++ 2025-07-18 16:49:47,825 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
+++++2025-07-18 16:49:47,842 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
+++++2025-07-18 16:49:47,844 - INFO - [Monitoring] Started monitoring D:\internship_paysky25\Triggers_file for new files.
+++++2025-07-18 16:49:48,190 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:49:48,592 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:49:48,998 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:49:49,403 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:49:49,809 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:49:50,213 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:49:50,622 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:49:51,026 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:49:51,425 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:49:54,568 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++++2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:50:06,468 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 16:55:31,408 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++2025-07-18 16:55:31,408 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 17:10:59,485 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+2025-07-18 17:10:59,486 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 17:11:09,018 - INFO - [DIFF] Changes in file_monitor.log:
+--- beforefile_monitor.log
++++ afterfile_monitor.log
+@@ -266,3 +266,53 @@
+ +2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+ 2025-07-18 16:55:31,408 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+ 2025-07-18 16:55:31,408 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 17:10:57,247 - INFO - [DIFF] Changes in file_monitor.log:
++--- beforefile_monitor.log
+++++ afterfile_monitor.log
++@@ -225,3 +225,44 @@
++ +2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++ 2025-07-18 16:50:06,468 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++ 2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:55:29,884 - INFO - [DIFF] Changes in file_monitor.log:
+++--- beforefile_monitor.log
++++++ afterfile_monitor.log
+++@@ -193,3 +193,35 @@
+++ +2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++ 2025-07-18 16:49:54,568 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++ 2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:50:04,462 - INFO - [DIFF] Changes in file_monitor.log:
++++--- beforefile_monitor.log
+++++++ afterfile_monitor.log
++++@@ -170,3 +170,26 @@
++++ 2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++ 2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++ 2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:49:53,068 - INFO - [DIFF] Changes in file_monitor.log:
+++++--- beforefile_monitor.log
++++++++ afterfile_monitor.log
+++++@@ -156,3 +156,17 @@
+++++ 2025-07-18 16:47:37,262 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++ 2025-07-18 16:48:08,157 - INFO - [Monitoring] Stopped monitoring
+++++ 2025-07-18 16:49:47,825 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
++++++2025-07-18 16:49:47,842 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
++++++2025-07-18 16:49:47,844 - INFO - [Monitoring] Started monitoring D:\internship_paysky25\Triggers_file for new files.
++++++2025-07-18 16:49:48,190 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:49:48,592 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:49:48,998 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:49:49,403 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:49:49,809 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:49:50,213 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:49:50,622 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:49:51,026 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:49:51,425 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:49:54,568 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++++2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:50:06,468 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++++2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 16:55:31,408 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++2025-07-18 16:55:31,408 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 17:10:59,485 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++2025-07-18 17:10:59,486 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 17:11:11,748 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+2025-07-18 17:11:11,748 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 17:11:26,583 - INFO - [Alert] New File created: New Text Document.txt.
+2025-07-18 17:11:28,426 - INFO - [Notification] Email sent for file: New Text Document.txt, action: created.
+2025-07-18 17:12:52,617 - INFO - [DIFF] Changes in file_monitor.log:
+--- beforefile_monitor.log
++++ afterfile_monitor.log
+@@ -316,3 +316,64 @@
+ +2025-07-18 16:55:31,408 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+ 2025-07-18 17:10:59,485 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+ 2025-07-18 17:10:59,486 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 17:11:09,018 - INFO - [DIFF] Changes in file_monitor.log:
++--- beforefile_monitor.log
+++++ afterfile_monitor.log
++@@ -266,3 +266,53 @@
++ +2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++ 2025-07-18 16:55:31,408 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++ 2025-07-18 16:55:31,408 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 17:10:57,247 - INFO - [DIFF] Changes in file_monitor.log:
+++--- beforefile_monitor.log
++++++ afterfile_monitor.log
+++@@ -225,3 +225,44 @@
+++ +2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++ 2025-07-18 16:50:06,468 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++ 2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:55:29,884 - INFO - [DIFF] Changes in file_monitor.log:
++++--- beforefile_monitor.log
+++++++ afterfile_monitor.log
++++@@ -193,3 +193,35 @@
++++ +2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++ 2025-07-18 16:49:54,568 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++++ 2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:50:04,462 - INFO - [DIFF] Changes in file_monitor.log:
+++++--- beforefile_monitor.log
++++++++ afterfile_monitor.log
+++++@@ -170,3 +170,26 @@
+++++ 2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++ 2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++ 2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:49:53,068 - INFO - [DIFF] Changes in file_monitor.log:
++++++--- beforefile_monitor.log
+++++++++ afterfile_monitor.log
++++++@@ -156,3 +156,17 @@
++++++ 2025-07-18 16:47:37,262 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++ 2025-07-18 16:48:08,157 - INFO - [Monitoring] Stopped monitoring
++++++ 2025-07-18 16:49:47,825 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
+++++++2025-07-18 16:49:47,842 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
+++++++2025-07-18 16:49:47,844 - INFO - [Monitoring] Started monitoring D:\internship_paysky25\Triggers_file for new files.
+++++++2025-07-18 16:49:48,190 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++2025-07-18 16:49:48,592 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++2025-07-18 16:49:48,998 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++2025-07-18 16:49:49,403 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++2025-07-18 16:49:49,809 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++2025-07-18 16:49:50,213 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++2025-07-18 16:49:50,622 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++2025-07-18 16:49:51,026 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++2025-07-18 16:49:51,425 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:49:54,568 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++++++2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:50:06,468 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++++2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 16:55:31,408 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++++2025-07-18 16:55:31,408 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 17:10:59,485 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++2025-07-18 17:10:59,486 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 17:11:11,748 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++2025-07-18 17:11:11,748 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 17:11:26,583 - INFO - [Alert] New File created: New Text Document.txt.
++2025-07-18 17:11:28,426 - INFO - [Notification] Email sent for file: New Text Document.txt, action: created.
+2025-07-18 17:12:54,420 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+2025-07-18 17:12:54,421 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 17:13:18,694 - INFO - [DIFF] Changes in file_monitor.log:
+--- beforefile_monitor.log
++++ afterfile_monitor.log
+@@ -377,3 +377,73 @@
+ 2025-07-18 17:11:11,748 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+ 2025-07-18 17:11:26,583 - INFO - [Alert] New File created: New Text Document.txt.
+ 2025-07-18 17:11:28,426 - INFO - [Notification] Email sent for file: New Text Document.txt, action: created.
++2025-07-18 17:12:52,617 - INFO - [DIFF] Changes in file_monitor.log:
++--- beforefile_monitor.log
+++++ afterfile_monitor.log
++@@ -316,3 +316,64 @@
++ +2025-07-18 16:55:31,408 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++ 2025-07-18 17:10:59,485 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++ 2025-07-18 17:10:59,486 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 17:11:09,018 - INFO - [DIFF] Changes in file_monitor.log:
+++--- beforefile_monitor.log
++++++ afterfile_monitor.log
+++@@ -266,3 +266,53 @@
+++ +2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++ 2025-07-18 16:55:31,408 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++ 2025-07-18 16:55:31,408 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 17:10:57,247 - INFO - [DIFF] Changes in file_monitor.log:
++++--- beforefile_monitor.log
+++++++ afterfile_monitor.log
++++@@ -225,3 +225,44 @@
++++ +2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++ 2025-07-18 16:50:06,468 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++++ 2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:55:29,884 - INFO - [DIFF] Changes in file_monitor.log:
+++++--- beforefile_monitor.log
++++++++ afterfile_monitor.log
+++++@@ -193,3 +193,35 @@
+++++ +2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++ 2025-07-18 16:49:54,568 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++++ 2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:50:04,462 - INFO - [DIFF] Changes in file_monitor.log:
++++++--- beforefile_monitor.log
+++++++++ afterfile_monitor.log
++++++@@ -170,3 +170,26 @@
++++++ 2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++ 2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++ 2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++2025-07-18 16:49:53,068 - INFO - [DIFF] Changes in file_monitor.log:
+++++++--- beforefile_monitor.log
++++++++++ afterfile_monitor.log
+++++++@@ -156,3 +156,17 @@
+++++++ 2025-07-18 16:47:37,262 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++ 2025-07-18 16:48:08,157 - INFO - [Monitoring] Stopped monitoring
+++++++ 2025-07-18 16:49:47,825 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
++++++++2025-07-18 16:49:47,842 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
++++++++2025-07-18 16:49:47,844 - INFO - [Monitoring] Started monitoring D:\internship_paysky25\Triggers_file for new files.
++++++++2025-07-18 16:49:48,190 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++++2025-07-18 16:49:48,592 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++++2025-07-18 16:49:48,998 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++++2025-07-18 16:49:49,403 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++++2025-07-18 16:49:49,809 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++++2025-07-18 16:49:50,213 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++++2025-07-18 16:49:50,622 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++++2025-07-18 16:49:51,026 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++++2025-07-18 16:49:51,425 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++++2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++++2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++++2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++2025-07-18 16:49:54,568 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++++++2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:50:06,468 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++++++2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 16:55:31,408 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++++2025-07-18 16:55:31,408 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 17:10:59,485 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++++2025-07-18 17:10:59,486 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 17:11:11,748 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++2025-07-18 17:11:11,748 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++2025-07-18 17:11:26,583 - INFO - [Alert] New File created: New Text Document.txt.
+++2025-07-18 17:11:28,426 - INFO - [Notification] Email sent for file: New Text Document.txt, action: created.
++2025-07-18 17:12:54,420 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++2025-07-18 17:12:54,421 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 17:13:20,142 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+2025-07-18 17:13:20,143 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 17:13:26,670 - INFO - [DIFF] Changes in file_monitor.log:
+--- beforefile_monitor.log
++++ afterfile_monitor.log
+@@ -447,3 +447,82 @@
+ +2025-07-18 17:11:28,426 - INFO - [Notification] Email sent for file: New Text Document.txt, action: created.
+ 2025-07-18 17:12:54,420 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+ 2025-07-18 17:12:54,421 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 17:13:18,694 - INFO - [DIFF] Changes in file_monitor.log:
++--- beforefile_monitor.log
+++++ afterfile_monitor.log
++@@ -377,3 +377,73 @@
++ 2025-07-18 17:11:11,748 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++ 2025-07-18 17:11:26,583 - INFO - [Alert] New File created: New Text Document.txt.
++ 2025-07-18 17:11:28,426 - INFO - [Notification] Email sent for file: New Text Document.txt, action: created.
+++2025-07-18 17:12:52,617 - INFO - [DIFF] Changes in file_monitor.log:
+++--- beforefile_monitor.log
++++++ afterfile_monitor.log
+++@@ -316,3 +316,64 @@
+++ +2025-07-18 16:55:31,408 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++ 2025-07-18 17:10:59,485 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++ 2025-07-18 17:10:59,486 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 17:11:09,018 - INFO - [DIFF] Changes in file_monitor.log:
++++--- beforefile_monitor.log
+++++++ afterfile_monitor.log
++++@@ -266,3 +266,53 @@
++++ +2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++ 2025-07-18 16:55:31,408 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++++ 2025-07-18 16:55:31,408 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 17:10:57,247 - INFO - [DIFF] Changes in file_monitor.log:
+++++--- beforefile_monitor.log
++++++++ afterfile_monitor.log
+++++@@ -225,3 +225,44 @@
+++++ +2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++ 2025-07-18 16:50:06,468 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++++ 2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:55:29,884 - INFO - [DIFF] Changes in file_monitor.log:
++++++--- beforefile_monitor.log
+++++++++ afterfile_monitor.log
++++++@@ -193,3 +193,35 @@
++++++ +2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++ 2025-07-18 16:49:54,568 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++++++ 2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++2025-07-18 16:50:04,462 - INFO - [DIFF] Changes in file_monitor.log:
+++++++--- beforefile_monitor.log
++++++++++ afterfile_monitor.log
+++++++@@ -170,3 +170,26 @@
+++++++ 2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++ 2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++ 2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++++2025-07-18 16:49:53,068 - INFO - [DIFF] Changes in file_monitor.log:
++++++++--- beforefile_monitor.log
+++++++++++ afterfile_monitor.log
++++++++@@ -156,3 +156,17 @@
++++++++ 2025-07-18 16:47:37,262 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++++ 2025-07-18 16:48:08,157 - INFO - [Monitoring] Stopped monitoring
++++++++ 2025-07-18 16:49:47,825 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
+++++++++2025-07-18 16:49:47,842 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
+++++++++2025-07-18 16:49:47,844 - INFO - [Monitoring] Started monitoring D:\internship_paysky25\Triggers_file for new files.
+++++++++2025-07-18 16:49:48,190 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++++2025-07-18 16:49:48,592 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++++2025-07-18 16:49:48,998 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++++2025-07-18 16:49:49,403 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++++2025-07-18 16:49:49,809 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++++2025-07-18 16:49:50,213 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++++2025-07-18 16:49:50,622 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++++2025-07-18 16:49:51,026 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++++2025-07-18 16:49:51,425 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++++2025-07-18 16:49:51,841 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++++2025-07-18 16:49:52,248 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++++2025-07-18 16:49:52,654 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++++2025-07-18 16:49:54,568 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++++++++2025-07-18 16:49:54,568 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++++2025-07-18 16:50:06,468 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++++++2025-07-18 16:50:06,469 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++++2025-07-18 16:55:31,408 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++++++2025-07-18 16:55:31,408 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+++++2025-07-18 17:10:59,485 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++++2025-07-18 17:10:59,486 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 17:11:11,748 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++++2025-07-18 17:11:11,748 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++++2025-07-18 17:11:26,583 - INFO - [Alert] New File created: New Text Document.txt.
++++2025-07-18 17:11:28,426 - INFO - [Notification] Email sent for file: New Text Document.txt, action: created.
+++2025-07-18 17:12:54,420 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+++2025-07-18 17:12:54,421 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
++2025-07-18 17:13:20,142 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
++2025-07-18 17:13:20,143 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 17:13:28,267 - INFO - [Notification] Email sent for file: file_monitor.log, action: modified.
+2025-07-18 17:13:28,275 - INFO - [Info] File file_monitor.log modified again within threshold, skipping email notification.
+2025-07-18 17:14:04,078 - INFO - [Monitoring] Stopped monitoring
+2025-07-18 17:31:17,605 - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file.
+2025-07-18 17:31:17,607 - INFO - [Monitoring] Started monitoring D:\internship_paysky25\Triggers_file
+2025-07-18 17:31:27,876 - INFO - [Alert] New file created: sdnkci
+2025-07-18 17:31:29,555 - INFO - [Notification] Email sent: File Created: sdnkci
+2025-07-18 17:31:43,264 - INFO - [DIFF] Changes in sdnkci:
+--- before_sdnkci
++++ after_sdnkci
+@@ -0,0 +1 @@
++basmala create this and will delete
+2025-07-18 17:31:44,753 - INFO - [Notification] Email sent: File Modified: sdnkci
+2025-07-18 17:31:44,754 - INFO - [Info] File sdnkci modified again within threshold, skipping.
+2025-07-18 17:32:31,874 - INFO - [Alert] File deleted: just_file.txt
+2025-07-18 17:32:33,405 - INFO - [Notification] Email sent: File Deleted: just_file.txt
+2025-07-18 17:32:39,360 - INFO - [Alert] File deleted: just_new
+2025-07-18 17:32:40,877 - INFO - [Notification] Email sent: File Deleted: just_new
+2025-07-18 17:32:42,505 - INFO - [Alert] File deleted: New Microsoft Access Database.accdb
+2025-07-18 17:32:43,960 - INFO - [Notification] Email sent: File Deleted: New Microsoft Access Database.accdb
+2025-07-18 17:32:44,354 - INFO - [Alert] File deleted: New Microsoft Word Document.docx
+2025-07-18 17:32:45,741 - INFO - [Notification] Email sent: File Deleted: New Microsoft Word Document.docx
+2025-07-18 17:35:07,953 - INFO - [Alert] New file created: New Microsoft PowerPoint Presentation.pptx
+2025-07-18 17:35:09,537 - INFO - [Notification] Email sent: File Created: New Microsoft PowerPoint Presentation.pptx
+2025-07-18 17:35:53,959 - INFO - [Monitoring] Stopped monitoring
