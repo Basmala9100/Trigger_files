@@ -1,0 +1,21 @@
+2025-07-22 12:42:51,636 - __main__ - INFO - Initialized content for 8 files in D:\internship_paysky25\Triggers_file. - Line:111
+2025-07-22 12:42:51,640 - __main__ - INFO - [Monitoring] Started monitoring D:\internship_paysky25\Triggers_file - Line:210
+2025-07-22 12:43:05,340 - __main__ - INFO - [Alert] File deleted: test.txt - Line:188
+2025-07-22 12:43:07,762 - __main__ - INFO - [Notification] Email sent: File Deleted: test.txt - Line:126
+2025-07-22 12:43:31,069 - __main__ - INFO - [DIFF] Changes in find_files.py:
+--- before_find_files.py
++++ after_find_files.py
+@@ -214,7 +214,7 @@
+             time.sleep(1)
+     except KeyboardInterrupt:
+         observer.stop()
+-        logger.info("[Monitoring] Stopped monitoring")
++        logger.error("[Monitoring] Stopped monitoring")
+     observer.join()
+ 
+ if __name__ == "__main__": - Line:181
+2025-07-22 12:43:33,075 - __main__ - INFO - [Notification] Email sent: File Modified: find_files.py - Line:126
+2025-07-22 12:43:33,076 - __main__ - INFO - [Info] File find_files.py modified again within threshold, skipping. - Line:159
+2025-07-22 12:43:43,180 - __main__ - INFO - [Alert] File deleted: file_monitor.log - Line:188
+2025-07-22 12:43:45,628 - __main__ - INFO - [Notification] Email sent: File Deleted: file_monitor.log - Line:126
+2025-07-22 12:43:57,779 - __main__ - INFO - [Monitoring] Stopped monitoring - Line:217
